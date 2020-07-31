@@ -123,6 +123,15 @@ int signal_protocol_key_helper_generate_sender_key(signal_buffer **key_buffer, s
  */
 int signal_protocol_key_helper_generate_sender_key_id(uint32_t *key_id, signal_context *global_context);
 
+/*
+ * Generate a random private key to be used as an exponent in the ECElg scheme
+ * 
+ * @param private_key assigned to the generated private key
+ * @return 0 on success, or error code on failure
+ */
+
+int signal_protocol_key_helper_generate_exponent(uint8_t **private_key, signal_context *global_context);
+
 #ifdef __cplusplus
 }
 #endif

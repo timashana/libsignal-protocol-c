@@ -2,9 +2,15 @@
 #ifndef __CRYPTO_ADDITIONS__
 #define __CRYPTO_ADDITIONS__
 
+#ifndef crypto_int32_h
 #include "crypto_uint32.h"
+#endif
+#ifndef FE_H
 #include "fe.h"
+#endif
+#ifndef GE_H
 #include "ge.h"
+#endif
 
 #define MAX_MSG_LEN 256
 
