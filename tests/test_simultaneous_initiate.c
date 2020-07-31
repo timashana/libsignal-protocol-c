@@ -24,6 +24,7 @@
 
 #define integrated_ECElg
 
+
 static signal_protocol_address alice_address = {
         "+14159998888", 12, 1
 };
@@ -1917,6 +1918,7 @@ START_TEST(test_integrated_ec_elg_scheme)
 #endif
 
 END_TEST
+
 int is_session_id_equal(signal_protocol_store_context *alice_store, signal_protocol_store_context *bob_store)
 {
     int result = 0;
