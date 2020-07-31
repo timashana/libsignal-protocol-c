@@ -15,10 +15,14 @@
 #include "../src/key_helper.h"
 #include "../src/curve25519/ed25519/additions/crypto_additions.h"
 #include "../src/curve25519/ed25519/additions/generalized/ge_p3_add.c"
+#include "curve25519/ed25519/ge_frombytes.c"
+#include "curve25519/ed25519/ge_tobytes.c"
 
 
 #define DJB_KEY_LEN 32
-// #define ECElg_complete
+#define GE_128_LEN 128
+
+#define integrated_ECElg
 
 static signal_protocol_address alice_address = {
         "+14159998888", 12, 1
@@ -72,7 +76,7 @@ void ecelg_generate_key_pair(signal_context *context, ecelg_key_pair **key_pair)
     result = curve_generate_key_pair(context, &x);
     ck_assert_int_eq(result, 0);
     if (result!=0) {
-        printf("Failed to generate Alice's keypair!\n");
+        printf("Failed to generate ECElg keypair!\n");
     } else {
         *key_pair = malloc(sizeof(ecelg_key_pair));
         (*key_pair)->public_key = malloc(sizeof(ge_p3));
@@ -122,7 +126,9 @@ void test_teardown()
     SIGNAL_UNREF(bob_signed_pre_key);
     signal_context_destroy(global_context);
     free(bob_ecelg_key_pair->public_key);
+    free(bob_ecelg_key_pair);
     free(alice_ecelg_key_pair->public_key);
+    free(alice_ecelg_key_pair);
     
     pthread_mutex_destroy(&global_mutex);
     pthread_mutexattr_destroy(&global_mutex_attr);
@@ -1580,6 +1586,7 @@ int ecelg_compare(const ge_p3 *pre, const ge_p3 *post) {
 
 START_TEST(test_ec_elg_scheme)
 {
+    printf("\nStarting test_ec_elg_scheme...\n");
     int result = 0;
     
     /* Alice creates kA */
@@ -1625,17 +1632,15 @@ START_TEST(test_ec_elg_scheme)
     free(cB->c1);
     free(cB->c2);
     free(cB);
-    free(bob_ecelg_key_pair);
-    free(alice_ecelg_key_pair);
 }
 END_TEST
 
-#ifdef ECElg_complete
+#ifdef integrated_ECElg
 
 START_TEST(test_integrated_ec_elg_scheme)
 {
+    printf("\nStarting test_integrated_ec_elg_scheme...\n");
     int result = 0;
-
     /* Create the data stores */
     signal_protocol_store_context *alice_store = 0;
     setup_test_store_context(&alice_store, global_context);
@@ -1652,7 +1657,7 @@ START_TEST(test_integrated_ec_elg_scheme)
     session_builder *alice_session_builder = 0;
     result = session_builder_create(&alice_session_builder, alice_store, &bob_address, global_context);
     ck_assert_int_eq(result, 0);
-
+    
     session_builder *bob_session_builder = 0;
     result = session_builder_create(&bob_session_builder, bob_store, &alice_address, global_context);
     ck_assert_int_eq(result, 0);
@@ -1689,25 +1694,32 @@ START_TEST(test_integrated_ec_elg_scheme)
     result = session_builder_process_pre_key_bundle(bob_session_builder, alice_pre_key_bundle);
     ck_assert_int_eq(result, 0);
 
-    /* TODO: Convert ecelg_ciphertext to static const char array to pass as a signal message
-    * Steps:
-    * 1. const char part1 = ge_tobytes(ecelg_ciphertext->c1)
-    * 2. const char part2 = ge_tobytes(ecelg_ciphertext->c2)
-    * 3. concatenate msg = part1||part2
-    * 4. pass msg as message_for_bob_data[]/message_for_alice_data[] below
-    */
+    /* Prepare the ciphertext to be sent as a signal message */
+    uint8_t cA_part1 [GE_128_LEN];
+    ge_p3_tobytes_128(cA_part1, cA->c1);
+    uint8_t cA_part2 [GE_128_LEN];
+    ge_p3_tobytes_128(cA_part2, cA->c2);
+    uint8_t message_for_bob_data [2*GE_128_LEN];
+    memcpy(message_for_bob_data, cA_part1, GE_128_LEN);
+    memcpy(message_for_bob_data + GE_128_LEN, cA_part2, GE_128_LEN);
+
+    uint8_t cB_part1 [GE_128_LEN];
+    ge_p3_tobytes_128(cB_part1, cB->c1);
+    uint8_t cB_part2 [GE_128_LEN];
+    ge_p3_tobytes_128(cB_part2, cB->c2);
+    uint8_t message_for_alice_data [2*GE_128_LEN];
+    memcpy(message_for_alice_data, cB_part1, GE_128_LEN);
+    memcpy(message_for_alice_data + GE_128_LEN, cB_part2, GE_128_LEN);
 
     /* Encrypt a pair of messages */
-    static const char message_for_bob_data[] = "hey there";
-    size_t message_for_bob_len = sizeof(message_for_bob_data) - 1;
+    size_t message_for_bob_len = sizeof(message_for_bob_data);
     ciphertext_message *message_for_bob = 0;
     result = session_cipher_encrypt(alice_session_cipher,
             (uint8_t *)message_for_bob_data, message_for_bob_len,
             &message_for_bob);
     ck_assert_int_eq(result, 0);
 
-    static const char message_for_alice_data[] = "sample message";
-    size_t message_for_alice_len = sizeof(message_for_alice_data) - 1;
+    size_t message_for_alice_len = sizeof(message_for_alice_data);
     ciphertext_message *message_for_alice = 0;
     result = session_cipher_encrypt(bob_session_cipher,
             (uint8_t *)message_for_alice_data, message_for_alice_len,
@@ -1727,11 +1739,11 @@ START_TEST(test_integrated_ec_elg_scheme)
 
     /* Decrypt the messages */
     signal_buffer *alice_plaintext = 0;
-    result = session_cipher_decrypt_pre_key_signal_message(alice_session_cipher, message_for_alice_copy, 0, &alice_plaintext, alice_params);
+    result = session_cipher_decrypt_pre_key_signal_message(alice_session_cipher, message_for_alice_copy, 0, &alice_plaintext);
     ck_assert_int_eq(result, 0);
 
     signal_buffer *bob_plaintext = 0;
-    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, message_for_bob_copy, 0, &bob_plaintext, bob_params);
+    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, message_for_bob_copy, 0, &bob_plaintext);
     ck_assert_int_eq(result, 0);
 
     /* Verify that the messages decrypted correctly */
@@ -1745,20 +1757,49 @@ START_TEST(test_integrated_ec_elg_scheme)
     ck_assert_int_eq(message_for_bob_len, bob_plaintext_len);
     ck_assert_int_eq(memcmp(message_for_bob_data, bob_plaintext_data, bob_plaintext_len), 0);
 
-    /* TODO: Convert uint8_t* plaintext back to ecelg_ciphertext
-    * Steps:
-    * 1. break the plaintext apart like so plaintext = part1||part2
-    * 2. ecelg_ciphertext->c1 = ge_frombytes(part1)
-    * 3. ecelg_ciphertext->c2 = ge_frombytes(part2)
-    */
+    /* Read the signal message back into ecelg_ciphertext */
+    uint8_t bob_plaintext_part1 [GE_128_LEN];
+    uint8_t bob_plaintext_part2 [GE_128_LEN];
+    memcpy(bob_plaintext_part1, bob_plaintext_data, GE_128_LEN);
+    memcpy(bob_plaintext_part2, bob_plaintext_data + GE_128_LEN, GE_128_LEN);
+    ge_p3 *bob_plaintext_c1 = malloc(sizeof(ge_p3));
+    ge_p3 *bob_plaintext_c2 = malloc(sizeof(ge_p3));
+    ge_frombytes_128(bob_plaintext_c1, bob_plaintext_part1);
+    ge_frombytes_128(bob_plaintext_c2, bob_plaintext_part2);
+    ecelg_ciphertext *plaintext_cA = malloc(sizeof(ecelg_ciphertext));
+    plaintext_cA->c1 = bob_plaintext_c1;
+    plaintext_cA->c2 = bob_plaintext_c2;
+
+    uint8_t alice_plaintext_part1 [GE_128_LEN];
+    uint8_t alice_plaintext_part2 [GE_128_LEN];
+    memcpy(alice_plaintext_part1, alice_plaintext_data, GE_128_LEN);
+    memcpy(alice_plaintext_part2, alice_plaintext_data + GE_128_LEN, GE_128_LEN);
+    ge_p3 *alice_plaintext_c1 = malloc(sizeof(ge_p3));
+    ge_p3 *alice_plaintext_c2 = malloc(sizeof(ge_p3));
+    ge_frombytes_128(alice_plaintext_c1, alice_plaintext_part1);
+    ge_frombytes_128(alice_plaintext_c2, alice_plaintext_part2);
+    ecelg_ciphertext *plaintext_cB = malloc(sizeof(ecelg_ciphertext));
+    plaintext_cB->c1 = alice_plaintext_c1;
+    plaintext_cB->c2 = alice_plaintext_c2;
+
+    /* Check that the ciphertexts were read correctly */
+   
+    result = ecelg_compare(cA->c1, plaintext_cA->c1);
+    ck_assert_int_eq(result, 1);
+    result = ecelg_compare(cA->c2, plaintext_cA->c2);
+    ck_assert_int_eq(result, 1);
+    result = ecelg_compare(cB->c1, plaintext_cB->c1);
+    ck_assert_int_eq(result, 1);
+    result = ecelg_compare(cB->c2, plaintext_cB->c2);
+    ck_assert_int_eq(result, 1);
 
     /* Bob decrypts cA */
     ge_p3 plaintext_kA;
-    ecelg_decrypt(&plaintext_kA, cA, bob_ecelg_key_pair->private_key);
+    ecelg_decrypt(&plaintext_kA, plaintext_cA, bob_ecelg_key_pair->private_key);
 
     /* Alice decrypts cB */
     ge_p3 plaintext_kB;
-    ecelg_decrypt(&plaintext_kB, cB, alice_ecelg_key_pair->private_key);
+    ecelg_decrypt(&plaintext_kB, plaintext_cB, alice_ecelg_key_pair->private_key);
 
     /* Check the decryption of cA */
     result = ecelg_compare(&kA, &plaintext_kA);
@@ -1847,8 +1888,10 @@ START_TEST(test_integrated_ec_elg_scheme)
     free(cB->c1);
     free(cB->c2);
     free(cB);
-    free(bob_ecelg_key_pair);
-    free(alice_ecelg_key_pair);
+    free(plaintext_cA->c1);
+    free(plaintext_cA);
+    free(plaintext_cB->c1);
+    free(plaintext_cB);
     signal_buffer_free(final_plaintext);
     SIGNAL_UNREF(final_message_copy);
     SIGNAL_UNREF(final_message);
@@ -2062,7 +2105,7 @@ Suite *simultaneous_initiate_suite(void)
     tcase_add_test(tcase, test_repeated_simultaneous_initiate_repeated_messages);
     tcase_add_test(tcase, test_repeated_simultaneous_initiate_lost_message_repeated_messages);
     tcase_add_test(tcase, test_ec_elg_scheme);
-    // tcase_add_test(tcase, test_integrated_ec_elg_scheme);
+    tcase_add_test(tcase, test_integrated_ec_elg_scheme);
     suite_add_tcase(suite, tcase);
 
     return suite;

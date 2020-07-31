@@ -664,6 +664,6 @@ complete:
     return result;
 }
 
-uint8_t* get_private_data(const ec_private_key *private_key) {
+const uint8_t* get_private_data(const ec_private_key *private_key) {
     return private_key->data;
 }
