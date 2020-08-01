@@ -1,4 +1,6 @@
+#ifndef GE_H
 #include "ge.h"
+#endif
 
 /*
 r = p + q
