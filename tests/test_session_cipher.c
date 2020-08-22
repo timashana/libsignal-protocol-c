@@ -135,7 +135,8 @@ void initialize_sessions_v3(session_state *alice_state, session_state *bob_state
             /* their_identity_key     */ ratchet_identity_key_pair_get_public(bob_identity_key),
             /* their_signed_pre_key   */ ec_key_pair_get_public(bob_base_key),
             /* their_one_time_pre_key */ 0,
-            /* their_ratchet_key      */ ec_key_pair_get_public(bob_ephemeral_key));
+            /* their_ratchet_key      */ ec_key_pair_get_public(bob_ephemeral_key),
+            /* skeme_params           */ 0);
     ck_assert_int_eq(result, 0);
 
     /* Create Bob's parameters */
@@ -146,7 +147,8 @@ void initialize_sessions_v3(session_state *alice_state, session_state *bob_state
             /* our_one_time_pre_key */ 0,
             /* our_ratchet_key      */ bob_ephemeral_key,
             /* their_identity_key   */ ratchet_identity_key_pair_get_public(alice_identity_key),
-            /* their_base_key       */ ec_key_pair_get_public(alice_base_key));
+            /* their_base_key       */ ec_key_pair_get_public(alice_base_key),
+            /* skeme_params         */ 0);
     ck_assert_int_eq(result, 0);
 
     /* Initialize the ratcheting sessions */

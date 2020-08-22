@@ -106,7 +106,7 @@ int session_cipher_encrypt(session_cipher *cipher,
  */
 int session_cipher_decrypt_pre_key_signal_message(session_cipher *cipher,
         pre_key_signal_message *ciphertext, void *decrypt_context,
-        signal_buffer **plaintext);
+        signal_buffer **plaintext, skeme_protocol_parameters *params);
 
 /**
  * Decrypt a message.

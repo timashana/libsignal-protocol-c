@@ -40,6 +40,7 @@ ec_private_key *ratchet_identity_key_pair_get_private(const ratchet_identity_key
 void ratchet_identity_key_pair_destroy(signal_type_base *type);
 
 typedef struct symmetric_signal_protocol_parameters symmetric_signal_protocol_parameters;
+typedef struct skeme_protocol_parameters skeme_protocol_parameters;
 typedef struct alice_signal_protocol_parameters alice_signal_protocol_parameters;
 typedef struct bob_signal_protocol_parameters bob_signal_protocol_parameters;
 
@@ -66,7 +67,8 @@ int alice_signal_protocol_parameters_create(
         ec_public_key *their_identity_key,
         ec_public_key *their_signed_pre_key,
         ec_public_key *their_one_time_pre_key,
-        ec_public_key *their_ratchet_key);
+        ec_public_key *their_ratchet_key,
+        skeme_protocol_parameters *params);
 void alice_signal_protocol_parameters_destroy(signal_type_base *type);
 
 int bob_signal_protocol_parameters_create(
@@ -76,8 +78,14 @@ int bob_signal_protocol_parameters_create(
         ec_key_pair *our_one_time_pre_key,
         ec_key_pair *our_ratchet_key,
         ec_public_key *their_identity_key,
-        ec_public_key *their_base_key);
+        ec_public_key *their_base_key,
+        skeme_protocol_parameters *params);
 void bob_signal_protocol_parameters_destroy(signal_type_base *type);
+
+int skeme_protocol_parameters_create(
+        skeme_protocol_parameters **parameters,
+        uint8_t *kA,
+        uint8_t *kB);
 
 int ratcheting_session_symmetric_initialize(session_state *state, symmetric_signal_protocol_parameters *parameters, signal_context *global_context);
 int ratcheting_session_alice_initialize(session_state *state, alice_signal_protocol_parameters *parameters, signal_context *global_context);

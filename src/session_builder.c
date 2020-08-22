@@ -19,7 +19,7 @@ struct session_builder
 };
 
 static int session_builder_process_pre_key_signal_message_v3(session_builder *builder,
-        session_record *record, pre_key_signal_message *message, uint32_t *unsigned_pre_key_id);
+        session_record *record, pre_key_signal_message *message, uint32_t *unsigned_pre_key_id, skeme_protocol_parameters *params);
 
 int session_builder_create(session_builder **builder,
         signal_protocol_store_context *store, const signal_protocol_address *remote_address,
@@ -45,7 +45,7 @@ int session_builder_create(session_builder **builder,
 }
 
 int session_builder_process_pre_key_signal_message(session_builder *builder,
-        session_record *record, pre_key_signal_message *message, uint32_t *unsigned_pre_key_id)
+        session_record *record, pre_key_signal_message *message, uint32_t *unsigned_pre_key_id, skeme_protocol_parameters *params)
 {
     int result = 0;
     int has_unsigned_pre_key_id_result = 0;
@@ -63,7 +63,7 @@ int session_builder_process_pre_key_signal_message(session_builder *builder,
         goto complete;
     }
 
-    result = session_builder_process_pre_key_signal_message_v3(builder, record, message, &unsigned_pre_key_id_result);
+    result = session_builder_process_pre_key_signal_message_v3(builder, record, message, &unsigned_pre_key_id_result, params ? params : 0);
     if(result < 0) {
         goto complete;
     }
@@ -86,7 +86,7 @@ complete:
 }
 
 static int session_builder_process_pre_key_signal_message_v3(session_builder *builder,
-        session_record *record, pre_key_signal_message *message, uint32_t *unsigned_pre_key_id)
+        session_record *record, pre_key_signal_message *message, uint32_t *unsigned_pre_key_id, skeme_protocol_parameters *params)
 {
     int result = 0;
     uint32_t unsigned_pre_key_id_result = 0;
@@ -136,7 +136,8 @@ static int session_builder_process_pre_key_signal_message_v3(session_builder *bu
             our_one_time_pre_key,
             session_signed_pre_key_get_key_pair(our_signed_pre_key),
             pre_key_signal_message_get_identity_key(message),
-            pre_key_signal_message_get_base_key(message));
+            pre_key_signal_message_get_base_key(message),
+            params ? params : 0); 
     if(result < 0) {
         goto complete;
     }
@@ -188,7 +189,7 @@ complete:
     return result;
 }
 
-int session_builder_process_pre_key_bundle(session_builder *builder, session_pre_key_bundle *bundle)
+int session_builder_process_pre_key_bundle(session_builder *builder, session_pre_key_bundle *bundle, skeme_protocol_parameters *params)
 {
     int result = 0;
     session_record *record = 0;
@@ -287,7 +288,8 @@ int session_builder_process_pre_key_bundle(session_builder *builder, session_pre
             their_identity_key,
             their_signed_pre_key,
             their_one_time_pre_key,
-            their_signed_pre_key);
+            their_signed_pre_key,
+            params ? params : 0);
     if(result < 0) {
         goto complete;
     }

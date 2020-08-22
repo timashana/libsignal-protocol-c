@@ -170,10 +170,10 @@ START_TEST(test_basic_simultaneous_initiate)
     ck_assert_int_eq(result, 0);
 
     /* Process the pre key bundles */
-    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key_bundle);
+    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key_bundle, 0);
     ck_assert_int_eq(result, 0);
 
-    result = session_builder_process_pre_key_bundle(bob_session_builder, alice_pre_key_bundle);
+    result = session_builder_process_pre_key_bundle(bob_session_builder, alice_pre_key_bundle, 0);
     ck_assert_int_eq(result, 0);
 
     /* Encrypt a pair of messages */
@@ -213,11 +213,11 @@ START_TEST(test_basic_simultaneous_initiate)
 
     /* Decrypt the messages */
     signal_buffer *alice_plaintext = 0;
-    result = session_cipher_decrypt_pre_key_signal_message(alice_session_cipher, message_for_alice_copy, 0, &alice_plaintext);
+    result = session_cipher_decrypt_pre_key_signal_message(alice_session_cipher, message_for_alice_copy, 0, &alice_plaintext, 0);
     ck_assert_int_eq(result, 0);
 
     signal_buffer *bob_plaintext = 0;
-    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, message_for_bob_copy, 0, &bob_plaintext);
+    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, message_for_bob_copy, 0, &bob_plaintext, 0);
     ck_assert_int_eq(result, 0);
 
     /* Verify that the messages decrypted correctly */
@@ -359,10 +359,10 @@ START_TEST(test_lost_simultaneous_initiate)
     ck_assert_int_eq(result, 0);
 
     /* Process the pre key bundles */
-    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key_bundle);
+    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key_bundle, 0);
     ck_assert_int_eq(result, 0);
 
-    result = session_builder_process_pre_key_bundle(bob_session_builder, alice_pre_key_bundle);
+    result = session_builder_process_pre_key_bundle(bob_session_builder, alice_pre_key_bundle, 0);
     ck_assert_int_eq(result, 0);
 
     /* Encrypt a pair of messages */
@@ -397,7 +397,7 @@ START_TEST(test_lost_simultaneous_initiate)
 
     /* Decrypt the message */
     signal_buffer *bob_plaintext = 0;
-    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, message_for_bob_copy, 0, &bob_plaintext);
+    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, message_for_bob_copy, 0, &bob_plaintext, 0);
     ck_assert_int_eq(result, 0);
 
     /* Verify that the message decrypted correctly */
@@ -429,7 +429,7 @@ START_TEST(test_lost_simultaneous_initiate)
 
     /* Have Bob decrypt the response */
     signal_buffer *response_plaintext = 0;
-    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, alice_response_copy, 0, &response_plaintext);
+    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, alice_response_copy, 0, &response_plaintext, 0);
     ck_assert_int_eq(result, 0);
 
     /* Verify that the message decrypted correctly */
@@ -530,10 +530,10 @@ START_TEST(test_simultaneous_initiate_lost_message)
     ck_assert_int_eq(result, 0);
 
     /* Process the pre key bundles */
-    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key_bundle);
+    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key_bundle, 0);
     ck_assert_int_eq(result, 0);
 
-    result = session_builder_process_pre_key_bundle(bob_session_builder, alice_pre_key_bundle);
+    result = session_builder_process_pre_key_bundle(bob_session_builder, alice_pre_key_bundle, 0);
     ck_assert_int_eq(result, 0);
 
     /* Encrypt a pair of messages */
@@ -573,11 +573,11 @@ START_TEST(test_simultaneous_initiate_lost_message)
 
     /* Decrypt the messages */
     signal_buffer *alice_plaintext = 0;
-    result = session_cipher_decrypt_pre_key_signal_message(alice_session_cipher, message_for_alice_copy, 0, &alice_plaintext);
+    result = session_cipher_decrypt_pre_key_signal_message(alice_session_cipher, message_for_alice_copy, 0, &alice_plaintext, 0);
     ck_assert_int_eq(result, 0);
 
     signal_buffer *bob_plaintext = 0;
-    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, message_for_bob_copy, 0, &bob_plaintext);
+    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, message_for_bob_copy, 0, &bob_plaintext, 0);
     ck_assert_int_eq(result, 0);
 
     /* Verify that the messages decrypted correctly */
@@ -712,10 +712,10 @@ START_TEST(test_simultaneous_initiate_repeated_messages)
     ck_assert_int_eq(result, 0);
 
     /* Process the pre key bundles */
-    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key_bundle);
+    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key_bundle, 0);
     ck_assert_int_eq(result, 0);
 
-    result = session_builder_process_pre_key_bundle(bob_session_builder, alice_pre_key_bundle);
+    result = session_builder_process_pre_key_bundle(bob_session_builder, alice_pre_key_bundle, 0);
     ck_assert_int_eq(result, 0);
 
     /* Encrypt a pair of messages */
@@ -755,11 +755,11 @@ START_TEST(test_simultaneous_initiate_repeated_messages)
 
     /* Decrypt the messages */
     signal_buffer *alice_plaintext = 0;
-    result = session_cipher_decrypt_pre_key_signal_message(alice_session_cipher, message_for_alice_copy, 0, &alice_plaintext);
+    result = session_cipher_decrypt_pre_key_signal_message(alice_session_cipher, message_for_alice_copy, 0, &alice_plaintext, 0);
     ck_assert_int_eq(result, 0);
 
     signal_buffer *bob_plaintext = 0;
-    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, message_for_bob_copy, 0, &bob_plaintext);
+    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, message_for_bob_copy, 0, &bob_plaintext, 0);
     ck_assert_int_eq(result, 0);
 
     /* Verify that the messages decrypted correctly */
@@ -974,10 +974,10 @@ START_TEST(test_repeated_simultaneous_initiate_repeated_messages)
                 create_bob_pre_key_bundle(bob_store);
 
         /* Process the pre key bundles */
-        result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key_bundle);
+        result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key_bundle, 0);
         ck_assert_int_eq(result, 0);
 
-        result = session_builder_process_pre_key_bundle(bob_session_builder, alice_pre_key_bundle);
+        result = session_builder_process_pre_key_bundle(bob_session_builder, alice_pre_key_bundle, 0);
         ck_assert_int_eq(result, 0);
 
         /* Encrypt a pair of messages */
@@ -1017,11 +1017,11 @@ START_TEST(test_repeated_simultaneous_initiate_repeated_messages)
 
         /* Decrypt the messages */
         signal_buffer *alice_plaintext = 0;
-        result = session_cipher_decrypt_pre_key_signal_message(alice_session_cipher, message_for_alice_copy, 0, &alice_plaintext);
+        result = session_cipher_decrypt_pre_key_signal_message(alice_session_cipher, message_for_alice_copy, 0, &alice_plaintext, 0);
         ck_assert_int_eq(result, 0);
 
         signal_buffer *bob_plaintext = 0;
-        result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, message_for_bob_copy, 0, &bob_plaintext);
+        result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, message_for_bob_copy, 0, &bob_plaintext, 0);
         ck_assert_int_eq(result, 0);
 
         /* Verify that the messages decrypted correctly */
@@ -1235,7 +1235,7 @@ START_TEST(test_repeated_simultaneous_initiate_lost_message_repeated_messages)
             create_bob_pre_key_bundle(bob_store);
 
     /* Process the pre key bundles, intentionally skipping Alice's */
-    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_lost_pre_key_bundle);
+    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_lost_pre_key_bundle, 0);
     ck_assert_int_eq(result, 0);
 
     /* Encrypt a pair of messages, intentionally skipping Alice's */
@@ -1255,10 +1255,10 @@ START_TEST(test_repeated_simultaneous_initiate_lost_message_repeated_messages)
                 create_bob_pre_key_bundle(bob_store);
 
         /* Process the pre key bundles */
-        result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key_bundle);
+        result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key_bundle, 0);
         ck_assert_int_eq(result, 0);
 
-        result = session_builder_process_pre_key_bundle(bob_session_builder, alice_pre_key_bundle);
+        result = session_builder_process_pre_key_bundle(bob_session_builder, alice_pre_key_bundle, 0);
         ck_assert_int_eq(result, 0);
 
         /* Encrypt a pair of messages */
@@ -1298,11 +1298,11 @@ START_TEST(test_repeated_simultaneous_initiate_lost_message_repeated_messages)
 
         /* Decrypt the messages */
         signal_buffer *alice_plaintext = 0;
-        result = session_cipher_decrypt_pre_key_signal_message(alice_session_cipher, message_for_alice_copy, 0, &alice_plaintext);
+        result = session_cipher_decrypt_pre_key_signal_message(alice_session_cipher, message_for_alice_copy, 0, &alice_plaintext, 0);
         ck_assert_int_eq(result, 0);
 
         signal_buffer *bob_plaintext = 0;
-        result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, message_for_bob_copy, 0, &bob_plaintext);
+        result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, message_for_bob_copy, 0, &bob_plaintext, 0);
         ck_assert_int_eq(result, 0);
 
         /* Verify that the messages decrypted correctly */
@@ -1475,7 +1475,7 @@ START_TEST(test_repeated_simultaneous_initiate_lost_message_repeated_messages)
     /* Decrypt the lost message */
     signal_buffer *lost_message_for_bob_plaintext = 0;
     result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher,
-            lost_message_for_bob_copy, 0, &lost_message_for_bob_plaintext);
+            lost_message_for_bob_copy, 0, &lost_message_for_bob_plaintext, 0);
     ck_assert_int_eq(result, 0);
 
     /* Verify that the lost message decrypted correctly */
@@ -1638,6 +1638,16 @@ END_TEST
 
 #ifdef integrated_ECElg
 
+/* compacts full general representation of a curve point to just the
+ * 32Byte reduced x-value: X/Z. NOTE in edwards coordinates!! */
+void justx3(uint8_t* out, const ge_p3* in) {
+	fe z_inv={0};
+	fe ret={0};
+	fe_invert(z_inv,in->Z);
+	fe_mul(ret,z_inv,in->X); //prepare short x
+	fe_tobytes(out,ret);
+}
+
 START_TEST(test_integrated_ec_elg_scheme)
 {
     printf("\nStarting test_integrated_ec_elg_scheme...\n");
@@ -1665,11 +1675,15 @@ START_TEST(test_integrated_ec_elg_scheme)
     
     /* Alice creates kA */
     ge_p3 kA;
-    ecelg_generate_secret(&kA, global_context);  
+    ecelg_generate_secret(&kA, global_context);
+    uint8_t *alice_kA = malloc(DJB_KEY_LEN);
+    justx3(alice_kA, &kA);
 
     /* Bob creates kB */
     ge_p3 kB;
     ecelg_generate_secret(&kB, global_context);
+    uint8_t *bob_kB = malloc(DJB_KEY_LEN);
+    justx3(bob_kB, &kB);
     
     /* Alice encrypts kA with Bob's public key resulting in cA */
     ecelg_ciphertext *cA;
@@ -1679,6 +1693,36 @@ START_TEST(test_integrated_ec_elg_scheme)
     ecelg_ciphertext *cB;
     ecelg_encrypt(&cB, &kB, alice_ecelg_key_pair->public_key, bob_ecelg_key_pair->private_key);
 
+    /* Bob decrypts cA */
+    ge_p3 plaintext_kA;
+    ecelg_decrypt(&plaintext_kA, cA, bob_ecelg_key_pair->private_key);
+
+    /* Alice decrypts cB */
+    ge_p3 plaintext_kB;
+    ecelg_decrypt(&plaintext_kB, cB, alice_ecelg_key_pair->private_key);
+
+    /* Check the decryption of cA */
+    result = ecelg_compare(&kA, &plaintext_kA);
+    ck_assert_int_eq(result, 1);
+    if (result!=1) {
+        printf("[FAILURE] Decryption failed!\n");
+    } else printf("[SUCCESS] Decryption passed.\n"); 
+
+    /* Check the decryption of cB */
+    result = ecelg_compare(&kB, &plaintext_kB);
+    ck_assert_int_eq(result, 1);
+    if (result!=1) {
+        printf("[FAILURE] Decryption failed!\n");
+    } else printf("[SUCCESS] Decryption passed.\n"); 
+
+    /* Bob decodes ge_p3 kA into 32 bytes representation */
+    uint8_t *decoded_kA = malloc(DJB_KEY_LEN);
+    justx3(decoded_kA, &plaintext_kA);
+
+    /* Alice decodes pe_p3 kB into 32 bytes representation */
+    uint8_t *decoded_kB = malloc(DJB_KEY_LEN);
+    justx3(decoded_kB, &plaintext_kB);
+
     /* Create the session ciphers */
     session_cipher *alice_session_cipher = 0;
     result = session_cipher_create(&alice_session_cipher, alice_store, &bob_address, global_context);
@@ -1687,40 +1731,35 @@ START_TEST(test_integrated_ec_elg_scheme)
     session_cipher *bob_session_cipher = 0;
     result = session_cipher_create(&bob_session_cipher, bob_store, &alice_address, global_context);
     ck_assert_int_eq(result, 0);
+
+    /* Alice passes kA and the decrypted cB */
+    skeme_protocol_parameters *alice_params = 0;
+    result = skeme_protocol_parameters_create(&alice_params, alice_kA, decoded_kB); 
+    ck_assert_int_eq(result, 0);
+
+    /* Bob passes kB and the decrypted cA */
+    skeme_protocol_parameters *bob_params = 0;
+    result = skeme_protocol_parameters_create(&bob_params, decoded_kA, bob_kB); 
+    ck_assert_int_eq(result, 0);
     
     /* Process the pre key bundles */
-    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key_bundle);
+    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key_bundle, alice_params);
     ck_assert_int_eq(result, 0);
 
-    result = session_builder_process_pre_key_bundle(bob_session_builder, alice_pre_key_bundle);
+    result = session_builder_process_pre_key_bundle(bob_session_builder, alice_pre_key_bundle, bob_params);
     ck_assert_int_eq(result, 0);
-
-    /* Prepare the ciphertext to be sent as a signal message */
-    uint8_t cA_part1 [GE_128_LEN];
-    ge_p3_tobytes_128(cA_part1, cA->c1);
-    uint8_t cA_part2 [GE_128_LEN];
-    ge_p3_tobytes_128(cA_part2, cA->c2);
-    uint8_t message_for_bob_data [2*GE_128_LEN];
-    memcpy(message_for_bob_data, cA_part1, GE_128_LEN);
-    memcpy(message_for_bob_data + GE_128_LEN, cA_part2, GE_128_LEN);
-
-    uint8_t cB_part1 [GE_128_LEN];
-    ge_p3_tobytes_128(cB_part1, cB->c1);
-    uint8_t cB_part2 [GE_128_LEN];
-    ge_p3_tobytes_128(cB_part2, cB->c2);
-    uint8_t message_for_alice_data [2*GE_128_LEN];
-    memcpy(message_for_alice_data, cB_part1, GE_128_LEN);
-    memcpy(message_for_alice_data + GE_128_LEN, cB_part2, GE_128_LEN);
-
+    
     /* Encrypt a pair of messages */
-    size_t message_for_bob_len = sizeof(message_for_bob_data);
+    static const char message_for_bob_data[] = "hey there";
+    size_t message_for_bob_len = sizeof(message_for_bob_data) - 1;
     ciphertext_message *message_for_bob = 0;
     result = session_cipher_encrypt(alice_session_cipher,
             (uint8_t *)message_for_bob_data, message_for_bob_len,
             &message_for_bob);
     ck_assert_int_eq(result, 0);
 
-    size_t message_for_alice_len = sizeof(message_for_alice_data);
+    static const char message_for_alice_data[] = "sample message";
+    size_t message_for_alice_len = sizeof(message_for_alice_data) - 1;
     ciphertext_message *message_for_alice = 0;
     result = session_cipher_encrypt(bob_session_cipher,
             (uint8_t *)message_for_alice_data, message_for_alice_len,
@@ -1740,11 +1779,11 @@ START_TEST(test_integrated_ec_elg_scheme)
 
     /* Decrypt the messages */
     signal_buffer *alice_plaintext = 0;
-    result = session_cipher_decrypt_pre_key_signal_message(alice_session_cipher, message_for_alice_copy, 0, &alice_plaintext);
+    result = session_cipher_decrypt_pre_key_signal_message(alice_session_cipher, message_for_alice_copy, 0, &alice_plaintext, alice_params);
     ck_assert_int_eq(result, 0);
 
     signal_buffer *bob_plaintext = 0;
-    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, message_for_bob_copy, 0, &bob_plaintext);
+    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, message_for_bob_copy, 0, &bob_plaintext, bob_params);
     ck_assert_int_eq(result, 0);
 
     /* Verify that the messages decrypted correctly */
@@ -1757,71 +1796,6 @@ START_TEST(test_integrated_ec_elg_scheme)
     size_t bob_plaintext_len = signal_buffer_len(bob_plaintext);
     ck_assert_int_eq(message_for_bob_len, bob_plaintext_len);
     ck_assert_int_eq(memcmp(message_for_bob_data, bob_plaintext_data, bob_plaintext_len), 0);
-
-    /* Read the signal message back into ecelg_ciphertext */
-    uint8_t bob_plaintext_part1 [GE_128_LEN];
-    uint8_t bob_plaintext_part2 [GE_128_LEN];
-    memcpy(bob_plaintext_part1, bob_plaintext_data, GE_128_LEN);
-    memcpy(bob_plaintext_part2, bob_plaintext_data + GE_128_LEN, GE_128_LEN);
-    ge_p3 *bob_plaintext_c1 = malloc(sizeof(ge_p3));
-    ge_p3 *bob_plaintext_c2 = malloc(sizeof(ge_p3));
-    ge_frombytes_128(bob_plaintext_c1, bob_plaintext_part1);
-    ge_frombytes_128(bob_plaintext_c2, bob_plaintext_part2);
-    ecelg_ciphertext *plaintext_cA = malloc(sizeof(ecelg_ciphertext));
-    plaintext_cA->c1 = bob_plaintext_c1;
-    plaintext_cA->c2 = bob_plaintext_c2;
-
-    uint8_t alice_plaintext_part1 [GE_128_LEN];
-    uint8_t alice_plaintext_part2 [GE_128_LEN];
-    memcpy(alice_plaintext_part1, alice_plaintext_data, GE_128_LEN);
-    memcpy(alice_plaintext_part2, alice_plaintext_data + GE_128_LEN, GE_128_LEN);
-    ge_p3 *alice_plaintext_c1 = malloc(sizeof(ge_p3));
-    ge_p3 *alice_plaintext_c2 = malloc(sizeof(ge_p3));
-    ge_frombytes_128(alice_plaintext_c1, alice_plaintext_part1);
-    ge_frombytes_128(alice_plaintext_c2, alice_plaintext_part2);
-    ecelg_ciphertext *plaintext_cB = malloc(sizeof(ecelg_ciphertext));
-    plaintext_cB->c1 = alice_plaintext_c1;
-    plaintext_cB->c2 = alice_plaintext_c2;
-
-    /* Check that the ciphertexts were read correctly */
-   
-    result = ecelg_compare(cA->c1, plaintext_cA->c1);
-    ck_assert_int_eq(result, 1);
-    result = ecelg_compare(cA->c2, plaintext_cA->c2);
-    ck_assert_int_eq(result, 1);
-    result = ecelg_compare(cB->c1, plaintext_cB->c1);
-    ck_assert_int_eq(result, 1);
-    result = ecelg_compare(cB->c2, plaintext_cB->c2);
-    ck_assert_int_eq(result, 1);
-
-    /* Bob decrypts cA */
-    ge_p3 plaintext_kA;
-    ecelg_decrypt(&plaintext_kA, plaintext_cA, bob_ecelg_key_pair->private_key);
-
-    /* Alice decrypts cB */
-    ge_p3 plaintext_kB;
-    ecelg_decrypt(&plaintext_kB, plaintext_cB, alice_ecelg_key_pair->private_key);
-
-    /* Check the decryption of cA */
-    result = ecelg_compare(&kA, &plaintext_kA);
-    ck_assert_int_eq(result, 1);
-    if (result!=1) {
-        printf("[FAILURE] Decryption failed!\n");
-    } else printf("[SUCCESS] Decryption passed.\n"); 
-
-    /* Check the decryption of cB */
-    result = ecelg_compare(&kB, &plaintext_kB);
-    ck_assert_int_eq(result, 1);
-    if (result!=1) {
-        printf("[FAILURE] Decryption failed!\n");
-    } else printf("[SUCCESS] Decryption passed.\n"); 
-
-    /* TODO: for the session cipher, concatenate and hash the shared key as (kA||kB||g^xy) same way as before 
-    * Steps: 
-    * 1. Follow the steps as before to alter the session builder, cipher_decrypt functions and include kA and kB as parameters
-    * 2. Alter the code to account for the difference in the kA/kB types (i.e. it was uint8_t [32], now it is ecelg_ciphertext)
-    * 3. Test the new scheme
-    */
 
     /* Prepare Alice's response */
     static const char alice_response_data[] = "second message";
@@ -1889,10 +1863,10 @@ START_TEST(test_integrated_ec_elg_scheme)
     free(cB->c1);
     free(cB->c2);
     free(cB);
-    free(plaintext_cA->c1);
-    free(plaintext_cA);
-    free(plaintext_cB->c1);
-    free(plaintext_cB);
+    free(alice_kA);
+    free(bob_kB);
+    free(decoded_kA);
+    free(decoded_kB);
     signal_buffer_free(final_plaintext);
     SIGNAL_UNREF(final_message_copy);
     SIGNAL_UNREF(final_message);

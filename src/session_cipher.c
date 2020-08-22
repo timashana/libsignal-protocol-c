@@ -258,7 +258,7 @@ complete:
 
 int session_cipher_decrypt_pre_key_signal_message(session_cipher *cipher,
         pre_key_signal_message *ciphertext, void *decrypt_context,
-        signal_buffer **plaintext)
+        signal_buffer **plaintext, skeme_protocol_parameters *params)
 {
     int result = 0;
     signal_buffer *result_buf = 0;
@@ -279,7 +279,7 @@ int session_cipher_decrypt_pre_key_signal_message(session_cipher *cipher,
         goto complete;
     }
 
-    result = session_builder_process_pre_key_signal_message(cipher->builder, record, ciphertext, &unsigned_pre_key_id);
+    result = session_builder_process_pre_key_signal_message(cipher->builder, record, ciphertext, &unsigned_pre_key_id, params ? params : 0);
     if(result < 0) {
         goto complete;
     }

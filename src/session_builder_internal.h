@@ -21,6 +21,6 @@
  * @retval SG_ERR_UNTRUSTED_IDENTITY when the identity key of the sender is untrusted.
  */
 int session_builder_process_pre_key_signal_message(session_builder *builder,
-        session_record *record, pre_key_signal_message *message, uint32_t *unsigned_pre_key_id);
+        session_record *record, pre_key_signal_message *message, uint32_t *unsigned_pre_key_id, skeme_protocol_parameters *params);
 
 #endif /* SESSION_BUILDER_INTERNAL_H */

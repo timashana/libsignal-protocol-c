@@ -106,7 +106,7 @@ START_TEST(test_basic_pre_key_v2)
      * Have Alice process Bob's pre key bundle, which should fail due to a
      * missing unsigned pre key.
      */
-    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key);
+    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key, 0);
     ck_assert_int_eq(result, SG_ERR_INVALID_KEY);
 
     /* Final cleanup */
@@ -185,7 +185,7 @@ START_TEST(test_basic_pre_key_v3)
     signal_buffer_free(bob_signed_pre_key_public_serialized);
 
     /* Have Alice process Bob's pre key bundle */
-    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key);
+    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key, 0);
     ck_assert_int_eq(result, 0);
 
     /* Check that we can load the session state and verify its version */
@@ -207,7 +207,7 @@ START_TEST(test_basic_pre_key_v3)
     loaded_record_state = 0;
 
     /* Encrypt an outgoing message to send to Bob */
-    static const char original_message[] = "L'homme est condamné à être libre";
+    static const char original_message[] = "L'homme est condamnï¿½ ï¿½ ï¿½tre libre";
     size_t original_message_len = sizeof(original_message) - 1;
     session_cipher *alice_session_cipher = 0;
     result = session_cipher_create(&alice_session_cipher, alice_store, &bob_address, global_context);
@@ -264,7 +264,7 @@ START_TEST(test_basic_pre_key_v3)
     session_cipher_set_decryption_callback(bob_session_cipher, test_basic_pre_key_v3_decrypt_callback);
 
     signal_buffer *plaintext = 0;
-    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, incoming_message, &callback_context, &plaintext);
+    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, incoming_message, &callback_context, &plaintext, 0);
     ck_assert_int_eq(result, 0);
 
     /* Clean up callback data */
@@ -396,7 +396,7 @@ START_TEST(test_basic_pre_key_v3)
     ck_assert_int_eq(result, 0);
 
     /* Have Alice process Bob's pre key bundle */
-    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key);
+    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key, 0);
     ck_assert_int_eq(result, 0);
 
     /* Have Alice encrypt a message for Bob */
@@ -411,7 +411,7 @@ START_TEST(test_basic_pre_key_v3)
     ck_assert_int_eq(result, 0);
 
     /* The decrypt should fail with a specific error */
-    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, outgoing_message_copy, 0, &plaintext);
+    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, outgoing_message_copy, 0, &plaintext, 0);
     ck_assert_int_eq(result, SG_ERR_UNTRUSTED_IDENTITY);
     SIGNAL_UNREF(outgoing_message_copy); outgoing_message_copy = 0;
     signal_buffer_free(plaintext); plaintext = 0;
@@ -430,7 +430,7 @@ START_TEST(test_basic_pre_key_v3)
     result = pre_key_signal_message_copy(&outgoing_message_copy, (pre_key_signal_message *)outgoing_message, global_context);
     ck_assert_int_eq(result, 0);
 
-    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, outgoing_message_copy, 0, &plaintext);
+    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, outgoing_message_copy, 0, &plaintext, 0);
     ck_assert_int_eq(result, SG_SUCCESS);
     SIGNAL_UNREF(outgoing_message_copy); outgoing_message_copy = 0;
 
@@ -462,7 +462,7 @@ START_TEST(test_basic_pre_key_v3)
     ck_assert_int_eq(result, 0);
 
     /* Have Alice process Bob's new pre key bundle, which should fail */
-    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key);
+    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key, 0);
     ck_assert_int_eq(result, SG_ERR_UNTRUSTED_IDENTITY);
 
     fprintf(stderr, "Post-interaction tests complete\n");
@@ -580,7 +580,7 @@ START_TEST(test_bad_signed_pre_key_signature)
         ck_assert_int_eq(result, 0);
 
         /* Process the bundle and make sure we fail with an invalid key error */
-        result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key);
+        result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key, 0);
         ck_assert_int_eq(result, SG_ERR_INVALID_KEY);
 
         signal_buffer_free(modified_signature);
@@ -602,7 +602,7 @@ START_TEST(test_bad_signed_pre_key_signature)
     ck_assert_int_eq(result, 0);
 
     /* Process the bundle and make sure we do not fail */
-    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key);
+    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key, 0);
     ck_assert_int_eq(result, SG_SUCCESS);
 
     /* Cleanup */
@@ -697,7 +697,7 @@ START_TEST(test_repeat_bundle_message_v2)
      * Have Alice process Bob's pre key bundle, which should fail due to a
      * missing signed pre key.
      */
-    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key);
+    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key, 0);
     ck_assert_int_eq(result, SG_ERR_INVALID_KEY);
 
     /* Cleanup */
@@ -794,11 +794,11 @@ START_TEST(test_repeat_bundle_message_v3)
     ck_assert_int_eq(result, 0);
 
     /* Have Alice process Bob's pre key bundle */
-    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key);
+    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key, 0);
     ck_assert_int_eq(result, 0);
 
     /* Initialize Alice's session cipher */
-    static const char original_message[] = "L'homme est condamné à être libre";
+    static const char original_message[] = "L'homme est condamnï¿½ ï¿½ ï¿½tre libre";
     size_t original_message_len = sizeof(original_message) - 1;
     session_cipher *alice_session_cipher = 0;
     result = session_cipher_create(&alice_session_cipher, alice_store, &bob_address, global_context);
@@ -828,7 +828,7 @@ START_TEST(test_repeat_bundle_message_v3)
 
     /* Have Bob decrypt the message, and verify that it matches */
     signal_buffer *plaintext = 0;
-    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, incoming_message, 0, &plaintext);
+    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, incoming_message, 0, &plaintext, 0);
     ck_assert_int_eq(result, 0);
 
     uint8_t *plaintext_data = signal_buffer_data(plaintext);
@@ -865,7 +865,7 @@ START_TEST(test_repeat_bundle_message_v3)
     pre_key_signal_message *incoming_message_two = 0;
     result = pre_key_signal_message_copy(&incoming_message_two, (pre_key_signal_message *)outgoing_message_two, global_context);
 
-    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, incoming_message_two, 0, &plaintext);
+    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, incoming_message_two, 0, &plaintext, 0);
     ck_assert_int_eq(result, 0);
 
     plaintext_data = signal_buffer_data(plaintext);
@@ -999,11 +999,11 @@ START_TEST(test_bad_message_bundle)
     ck_assert_int_eq(result, 0);
 
     /* Have Alice process Bob's pre key bundle */
-    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key);
+    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key, 0);
     ck_assert_int_eq(result, 0);
 
     /* Encrypt an outgoing message to send to Bob */
-    static const char original_message[] = "L'homme est condamné à être libre";
+    static const char original_message[] = "L'homme est condamnï¿½ ï¿½ ï¿½tre libre";
     size_t original_message_len = sizeof(original_message) - 1;
     session_cipher *alice_session_cipher = 0;
     result = session_cipher_create(&alice_session_cipher, alice_store, &bob_address, global_context);
@@ -1035,7 +1035,7 @@ START_TEST(test_bad_message_bundle)
 
     /* Check that the decrypt fails with an invalid message error */
     signal_buffer *plaintext = 0;
-    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, incoming_message_bad, 0, &plaintext);
+    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, incoming_message_bad, 0, &plaintext, 0);
     ck_assert_int_eq(result, SG_ERR_INVALID_MESSAGE);
     signal_buffer_free(plaintext); plaintext = 0;
 
@@ -1048,7 +1048,7 @@ START_TEST(test_bad_message_bundle)
     result = pre_key_signal_message_deserialize(&incoming_message_good, good_message_data, good_message_len, global_context);
     ck_assert_int_eq(result, 0);
 
-    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, incoming_message_good, 0, &plaintext);
+    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, incoming_message_good, 0, &plaintext, 0);
     ck_assert_int_eq(result, SG_SUCCESS);
 
     uint8_t *plaintext_data = signal_buffer_data(plaintext);
@@ -1140,7 +1140,7 @@ START_TEST(test_optional_one_time_pre_key)
     ck_assert_int_eq(result, 0);
 
     /* Have Alice process Bob's pre key bundle */
-    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key);
+    result = session_builder_process_pre_key_bundle(alice_session_builder, bob_pre_key, 0);
     ck_assert_int_eq(result, 0);
 
     /* Find and verify the session version in Alice's store */
@@ -1157,7 +1157,7 @@ START_TEST(test_optional_one_time_pre_key)
     ck_assert_int_eq(session_state_get_session_version(state), 3);
     SIGNAL_UNREF(record);
 
-    static const char original_message[] = "L'homme est condamné à être libre";
+    static const char original_message[] = "L'homme est condamnï¿½ ï¿½ ï¿½tre libre";
     size_t original_message_len = sizeof(original_message) - 1;
 
     /* Create Alice's session cipher */
@@ -1207,7 +1207,7 @@ START_TEST(test_optional_one_time_pre_key)
     ck_assert_int_eq(result, 0);
 
     signal_buffer *plaintext = 0;
-    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, incoming_message, 0, &plaintext);
+    result = session_cipher_decrypt_pre_key_signal_message(bob_session_cipher, incoming_message, 0, &plaintext, 0);
     ck_assert_int_eq(result, 0);
 
     ck_assert_int_eq(signal_protocol_session_contains_session(bob_store, &alice_address), 1);
