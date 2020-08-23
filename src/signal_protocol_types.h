@@ -88,6 +88,7 @@ typedef struct sender_key_distribution_message sender_key_distribution_message;
 typedef struct ratchet_chain_key ratchet_chain_key;
 typedef struct ratchet_root_key ratchet_root_key;
 typedef struct ratchet_identity_key_pair ratchet_identity_key_pair;
+typedef struct skeme_protocol_parameters skeme_protocol_parameters;
 
 typedef struct ratchet_message_keys {
     uint8_t cipher_key[RATCHET_CIPHER_KEY_LENGTH];

@@ -448,7 +448,7 @@ START_TEST(test_ratcheting_session_as_bob)
             0, /* our_one_time_pre_key */
             bob_ephemeral_key_pair,
             alice_identity_key_public,
-            alice_base_key_public);
+            alice_base_key_public, 0);
     ck_assert_int_eq(result, 0);
     SIGNAL_UNREF(bob_signed_pre_key_pair);
     SIGNAL_UNREF(bob_ephemeral_key_pair);
@@ -568,7 +568,7 @@ START_TEST(test_ratcheting_session_as_alice)
     result = alice_signal_protocol_parameters_create(&alice_parameters,
             alice_identity_key_pair, alice_base_key,
             bob_identity_key_public, bob_signed_pre_key, 0,
-            bob_ephemeral_key_public);
+            bob_ephemeral_key_public, 0);
     ck_assert_int_eq(result, 0);
 
     result = ratcheting_session_alice_initialize(test_session_state, alice_parameters, global_context);

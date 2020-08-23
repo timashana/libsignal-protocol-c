@@ -15,6 +15,7 @@
 #include "signal_protocol_internal.h"
 
 #define HASH_OUTPUT_SIZE 32
+#define DJB_KEY_LEN 32
 #define DERIVED_MESSAGE_SECRETS_SIZE 80
 #define DERIVED_ROOT_SECRETS_SIZE 64
 
@@ -606,6 +607,29 @@ void ratchet_identity_key_pair_destroy(signal_type_base *type)
     free(key_pair);
 }
 
+struct skeme_protocol_parameters {
+    uint8_t *alice_kA;
+    uint8_t *bob_kB;
+};
+
+int skeme_protocol_parameters_create(skeme_protocol_parameters **parameters, uint8_t *kA, uint8_t *kB) {
+    skeme_protocol_parameters *result = 0;
+    if (!kA || !kB) return SG_ERR_INVAL;
+
+    result = malloc(sizeof(skeme_protocol_parameters));
+    if(!result) {
+        return SG_ERR_NOMEM;
+    }
+
+    memset(result, 0, sizeof(skeme_protocol_parameters));   
+
+    result->alice_kA = kA;
+    result->bob_kB = kB;
+
+    *parameters = result;
+    return 0;
+}
+
 struct symmetric_signal_protocol_parameters
 {
     signal_type_base base;
@@ -626,6 +650,7 @@ struct alice_signal_protocol_parameters
     ec_public_key *their_signed_pre_key;
     ec_public_key *their_one_time_pre_key; /* optional */
     ec_public_key *their_ratchet_key;
+    skeme_protocol_parameters *skeme_params; /*optional */
 };
 
 struct bob_signal_protocol_parameters
@@ -637,6 +662,7 @@ struct bob_signal_protocol_parameters
     ec_key_pair *our_ratchet_key;
     ec_public_key *their_identity_key;
     ec_public_key *their_base_key;
+    skeme_protocol_parameters *skeme_params; /* optional */
 };
 
 int symmetric_signal_protocol_parameters_create(
@@ -737,7 +763,8 @@ int alice_signal_protocol_parameters_create(
         ec_public_key *their_identity_key,
         ec_public_key *their_signed_pre_key,
         ec_public_key *their_one_time_pre_key,
-        ec_public_key *their_ratchet_key)
+        ec_public_key *their_ratchet_key,
+        skeme_protocol_parameters *params)
 {
     alice_signal_protocol_parameters *result = 0;
 
@@ -765,6 +792,7 @@ int alice_signal_protocol_parameters_create(
     result->their_identity_key = their_identity_key;
     result->their_signed_pre_key = their_signed_pre_key;
     result->their_ratchet_key = their_ratchet_key;
+    result->skeme_params = params;
 
     if(their_one_time_pre_key) {
         SIGNAL_REF(their_one_time_pre_key);
@@ -799,7 +827,8 @@ int bob_signal_protocol_parameters_create(
         ec_key_pair *our_one_time_pre_key,
         ec_key_pair *our_ratchet_key,
         ec_public_key *their_identity_key,
-        ec_public_key *their_base_key)
+        ec_public_key *their_base_key,
+        skeme_protocol_parameters *params)
 {
     bob_signal_protocol_parameters *result = 0;
 
@@ -827,6 +856,7 @@ int bob_signal_protocol_parameters_create(
     result->our_ratchet_key = our_ratchet_key;
     result->their_identity_key = their_identity_key;
     result->their_base_key = their_base_key;
+    result->skeme_params = params;
 
     if(our_one_time_pre_key) {
         SIGNAL_REF(our_one_time_pre_key);
@@ -945,7 +975,8 @@ int ratcheting_session_symmetric_initialize(
                 parameters->their_identity_key,
                 parameters->their_base_key,
                 0,
-                parameters->their_ratchet_key);
+                parameters->their_ratchet_key,
+                0);
         if(result >= 0) {
             result = ratcheting_session_alice_initialize(state, alice_parameters, global_context);
         }
@@ -961,7 +992,8 @@ int ratcheting_session_symmetric_initialize(
                 0,
                 parameters->our_ratchet_key,
                 parameters->their_identity_key,
-                parameters->their_base_key);
+                parameters->their_base_key,
+                0);
         if(result >= 0) {
             result = ratcheting_session_bob_initialize(state, bob_parameters, global_context);
         }
@@ -1007,34 +1039,46 @@ int ratcheting_session_alice_initialize(
         goto complete;
     }
 
-    agreement_len = curve_calculate_agreement(&agreement,
-            parameters->their_signed_pre_key, parameters->our_identity_key->private_key);
-    if(agreement_len < 0) {
-        result = agreement_len;
-        goto complete;
-    }
-    if(vpool_insert(&vp, vpool_get_length(&vp), agreement, (size_t)agreement_len)) {
-        free(agreement); agreement = 0; agreement_len = 0;
+    if(parameters->skeme_params) {
+        if(!vpool_insert(&vp, vpool_get_length(&vp), parameters->skeme_params->alice_kA, (size_t)DJB_KEY_LEN)) {
+            result = SG_ERR_NOMEM;
+            goto complete;
+        }
+
+        if(!vpool_insert(&vp, vpool_get_length(&vp), parameters->skeme_params->bob_kB, (size_t)DJB_KEY_LEN)) {
+            result = SG_ERR_NOMEM;
+            goto complete;
+        }
     }
     else {
-        result = SG_ERR_NOMEM;
-        goto complete;
-    }
+        agreement_len = curve_calculate_agreement(&agreement,
+                parameters->their_signed_pre_key, parameters->our_identity_key->private_key);
+        if(agreement_len < 0) {
+            result = agreement_len;
+            goto complete;
+        }
+        if(vpool_insert(&vp, vpool_get_length(&vp), agreement, (size_t)agreement_len)) {
+            free(agreement); agreement = 0; agreement_len = 0;
+        }
+        else {
+            result = SG_ERR_NOMEM;
+            goto complete;
+        }
 
-    agreement_len = curve_calculate_agreement(&agreement,
-            parameters->their_identity_key, ec_key_pair_get_private(parameters->our_base_key));
-    if(agreement_len < 0) {
-        result = agreement_len;
-        goto complete;
+        agreement_len = curve_calculate_agreement(&agreement,
+                parameters->their_identity_key, ec_key_pair_get_private(parameters->our_base_key));
+        if(agreement_len < 0) {
+            result = agreement_len;
+            goto complete;
+        }
+        if(vpool_insert(&vp, vpool_get_length(&vp), agreement, (size_t)agreement_len)) {
+            free(agreement); agreement = 0; agreement_len = 0;
+        }
+        else {
+            result = SG_ERR_NOMEM;
+            goto complete;
+        }
     }
-    if(vpool_insert(&vp, vpool_get_length(&vp), agreement, (size_t)agreement_len)) {
-        free(agreement); agreement = 0; agreement_len = 0;
-    }
-    else {
-        result = SG_ERR_NOMEM;
-        goto complete;
-    }
-
     agreement_len = curve_calculate_agreement(&agreement,
             parameters->their_signed_pre_key, ec_key_pair_get_private(parameters->our_base_key));
     if(agreement_len < 0) {
@@ -1049,7 +1093,7 @@ int ratcheting_session_alice_initialize(
         goto complete;
     }
 
-    if(parameters->their_one_time_pre_key) {
+    if((parameters->their_one_time_pre_key) && !(parameters->skeme_params)) {
         agreement_len = curve_calculate_agreement(&agreement,
                 parameters->their_one_time_pre_key, ec_key_pair_get_private(parameters->our_base_key));
         if(agreement_len < 0) {
@@ -1148,34 +1192,45 @@ int ratcheting_session_bob_initialize(
         goto complete;
     }
 
-    agreement_len = curve_calculate_agreement(&agreement,
-            parameters->their_identity_key, ec_key_pair_get_private(parameters->our_signed_pre_key));
-    if(agreement_len < 0) {
-        result = agreement_len;
-        goto complete;
-    }
-    if(vpool_insert(&vp, vpool_get_length(&vp), agreement, (size_t)agreement_len)) {
-        free(agreement); agreement = 0; agreement_len = 0;
-    }
-    else {
-        result = SG_ERR_NOMEM;
-        goto complete;
-    }
-
-    agreement_len = curve_calculate_agreement(&agreement,
-            parameters->their_base_key, parameters->our_identity_key->private_key);
-    if(agreement_len < 0) {
-        result = agreement_len;
-        goto complete;
-    }
-    if(vpool_insert(&vp, vpool_get_length(&vp), agreement, (size_t)agreement_len)) {
-        free(agreement); agreement = 0; agreement_len = 0;
+    if(parameters->skeme_params) {
+        if(!vpool_insert(&vp, vpool_get_length(&vp), parameters->skeme_params->alice_kA, (size_t)DJB_KEY_LEN)) {
+            result = SG_ERR_NOMEM;
+            goto complete;
+        }
+        if(!vpool_insert(&vp, vpool_get_length(&vp), parameters->skeme_params->bob_kB, (size_t)DJB_KEY_LEN)) {
+            result = SG_ERR_NOMEM;
+            goto complete;
+        }
     }
     else {
-        result = SG_ERR_NOMEM;
-        goto complete;
-    }
+        agreement_len = curve_calculate_agreement(&agreement,
+                parameters->their_identity_key, ec_key_pair_get_private(parameters->our_signed_pre_key));
+        if(agreement_len < 0) {
+            result = agreement_len;
+            goto complete;
+        }
+        if(vpool_insert(&vp, vpool_get_length(&vp), agreement, (size_t)agreement_len)) {
+            free(agreement); agreement = 0; agreement_len = 0;
+        }
+        else {
+            result = SG_ERR_NOMEM;
+            goto complete;
+        }
 
+        agreement_len = curve_calculate_agreement(&agreement,
+                parameters->their_base_key, parameters->our_identity_key->private_key);
+        if(agreement_len < 0) {
+            result = agreement_len;
+            goto complete;
+        }
+        if(vpool_insert(&vp, vpool_get_length(&vp), agreement, (size_t)agreement_len)) {
+            free(agreement); agreement = 0; agreement_len = 0;
+        }
+        else {
+            result = SG_ERR_NOMEM;
+            goto complete;
+        }
+    }
     agreement_len = curve_calculate_agreement(&agreement,
             parameters->their_base_key, ec_key_pair_get_private(parameters->our_signed_pre_key));
     if(agreement_len < 0) {
@@ -1190,7 +1245,7 @@ int ratcheting_session_bob_initialize(
         goto complete;
     }
 
-    if(parameters->our_one_time_pre_key) {
+    if((parameters->our_one_time_pre_key) && !(parameters->skeme_params)) {
         agreement_len = curve_calculate_agreement(&agreement,
                 parameters->their_base_key, ec_key_pair_get_private(parameters->our_one_time_pre_key));
         if(agreement_len < 0) {

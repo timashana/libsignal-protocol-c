@@ -305,3 +305,19 @@ int signal_protocol_key_helper_generate_sender_key_id(uint32_t *key_id, signal_c
     }
     return result;
 }
+
+int signal_protocol_key_helper_generate_exponent(uint8_t **private_key, signal_context *global_context)
+{
+    ec_private_key *key = 0;
+    int result;
+    result = curve_generate_private_key(global_context, &key);
+    if (result >= 0) {
+        *private_key = get_private_data(key);
+        return result;
+    } 
+    else {
+        if (key) free(key);
+        return SG_ERR_UNKNOWN;
+    }
+}
+
